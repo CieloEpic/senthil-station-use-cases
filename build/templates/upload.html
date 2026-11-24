@@ -1,0 +1,284 @@
+<!-- Upload sheet panel: read an Excel / CSV of use cases, find the new ones, categorise them, save to the register -->
+<style>
+.up-tab { position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 40; writing-mode: vertical-rl; text-orientation: mixed;
+  display: flex; align-items: center; gap: 8px; padding: 16px 9px; border: 1px solid var(--accent); border-right: 0; border-radius: 12px 0 0 12px;
+  background: var(--accent); color: var(--on-accent); font: 600 13px var(--font-display); letter-spacing: .04em; cursor: pointer; box-shadow: var(--shadow); }
+.up-tab svg { width: 16px; height: 16px; transform: rotate(90deg); }
+.up-tab:hover { padding-right: 13px; }
+.up-scrim { position: fixed; inset: 0; z-index: 49; background: rgb(0 0 0 / .45); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.up-scrim.on { opacity: 1; pointer-events: auto; }
+.up-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 50; width: min(620px, 100vw); background: var(--bg); border-left: 1px solid var(--line-strong);
+  box-shadow: -20px 0 40px rgb(0 0 0 / .25); transform: translateX(100%); transition: transform .35s cubic-bezier(.3, .9, .3, 1); display: flex; flex-direction: column; }
+.up-drawer.on { transform: none; }
+.up-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.up-head h2 { margin: 0; font: 700 18px var(--font-display); flex: 1; }
+.up-head small { display: block; color: var(--text-faint); font: 400 12.5px var(--font-body); margin-top: 2px; }
+.up-x { border: 1px solid var(--line-strong); background: var(--bg-raised); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; color: var(--text-dim); font-size: 18px; }
+.up-body { padding: 18px 20px 24px; overflow-y: auto; flex: 1; }
+.up-drop { display: block; border: 2px dashed var(--line-strong); border-radius: 14px; padding: 26px 18px; text-align: center; cursor: pointer; background: var(--bg-raised); transition: border-color .2s, background-color .2s; }
+.up-drop:hover, .up-drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.up-drop b { display: block; font: 600 15px var(--font-display); margin: 8px 0 4px; }
+.up-drop span { color: var(--text-dim); font-size: 13px; }
+.up-drop input { display: none; }
+.up-help { color: var(--text-faint); font-size: 12.5px; margin: 10px 0 0; }
+.up-sum { display: none; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 18px 0 12px; }
+.up-sum.on { display: grid; }
+.up-sum div { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.up-sum b { display: block; font: 700 20px var(--font-display); color: var(--accent); }
+.up-sum small { color: var(--text-faint); font-size: 11.5px; }
+.up-item { background: var(--bg-raised); border: 1px solid var(--line); border-left: 3px solid var(--st, var(--line-strong)); border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; animation: upIn .35s ease both; }
+@keyframes upIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.up-item.new { --st: var(--accent); } .up-item.upd { --st: #e8b44e; } .up-item.same { opacity: .6; }
+.up-top { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.up-badge { font: 600 10.5px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; background: var(--bg-sunken); color: var(--text-dim); }
+.up-item.new .up-badge { background: var(--accent); color: var(--on-accent); } .up-item.upd .up-badge { background: #e8b44e; color: #1a1300; }
+.up-id { font: 600 12.5px var(--font-mono); color: var(--accent); }
+.up-t { font-weight: 500; flex: 1; min-width: 200px; }
+.up-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 12.5px; }
+.up-row label { color: var(--text-faint); font: 500 11px var(--font-mono); text-transform: uppercase; letter-spacing: .05em; }
+.up-row select, .up-row input { font: inherit; font-size: 12.5px; background: var(--bg-sunken); color: var(--text); border: 1px solid var(--line-strong); border-radius: 7px; padding: 4px 6px; max-width: 100%; }
+.up-dom { display: inline-flex; align-items: center; gap: 5px; font: 500 11.5px var(--font-mono); border-radius: 6px; padding: 3px 8px; border: 1px solid var(--line-strong); }
+.up-dom.twin { color: var(--accent); border-color: var(--accent); }
+.up-p { font: 700 11px var(--font-display); width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--bg-sunken); color: var(--text-faint); cursor: pointer; }
+.up-p.on.E { background: var(--pe, #47c98a); color: #fff; border-color: transparent; } .up-p.on.S { background: var(--ps, #e8b44e); color: #fff; border-color: transparent; } .up-p.on.G { background: var(--pg, #9b82e8); color: #fff; border-color: transparent; }
+.up-chg { color: var(--text-faint); font-size: 12px; margin-top: 6px; }
+.up-actions { display: none; gap: 8px; flex-wrap: wrap; position: sticky; bottom: -24px; padding: 14px 0; background: linear-gradient(transparent, var(--bg) 30%); }
+.up-actions.on { display: flex; }
+.up-btn { border: 1px solid var(--line-strong); background: var(--bg-raised); color: var(--text); border-radius: 10px; padding: 10px 16px; cursor: pointer; font-weight: 500; }
+.up-btn.main { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.up-btn:disabled { opacity: .5; cursor: wait; }
+.up-msg { display: none; border-radius: 10px; padding: 12px 14px; margin: 12px 0; font-size: 13.5px; border: 1px solid var(--line-strong); background: var(--bg-raised); }
+.up-msg.on { display: block; } .up-msg.ok { border-color: var(--accent); } .up-msg.err { border-color: #f2686b; }
+.up-msg ol { margin: 6px 0 0; padding-left: 18px; }
+.up-msg a { color: var(--accent); }
+.up-sec { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
+.up-sec h3 { font: 600 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin: 0 0 8px; }
+.up-sec details summary { cursor: pointer; color: var(--text-dim); font-size: 13px; }
+.up-sec p { color: var(--text-dim); font-size: 12.5px; }
+.up-log { list-style: none; margin: 0; padding: 0; font-size: 12.5px; color: var(--text-dim); }
+.up-log li { padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.up-log code { font: 500 11.5px var(--font-mono); color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .up-drawer, .up-scrim, .up-item { transition: none; animation: none; } }
+</style>
+
+<button class="up-tab" id="upOpen" type="button" aria-controls="upDrawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>Upload sheet</button>
+<div class="up-scrim" id="upScrim"></div>
+<aside class="up-drawer" id="upDrawer" aria-hidden="true" aria-label="Upload a sheet of use cases">
+  <div class="up-head"><h2>Add use cases from a sheet<small>New use cases and epics are found, sorted into Senthil Station, AIoT and ESG, and saved to the register.</small></h2>
+    <button class="up-x" id="upClose" type="button" aria-label="Close">&times;</button></div>
+  <div class="up-body">
+    <label class="up-drop" id="upDrop">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 14h6M9 17h4"/></svg>
+      <b>Drop an Excel or CSV file here</b><span>or click to choose (.xlsx, .csv)</span>
+      <input type="file" id="upFile" accept=".xlsx,.xls,.csv">
+    </label>
+    <p class="up-help">Any column names work. A title or scenario column is enough; epic, assets, phase, outcome, test, persona and product columns are used when present.</p>
+    <div class="up-msg" id="upMsg"></div>
+    <div class="up-sum" id="upSum"></div>
+    <div id="upList"></div>
+    <div class="up-actions" id="upActions">
+      <button class="up-btn main" id="upSave" type="button">Save to register</button>
+      <button class="up-btn" id="upDl" type="button">Download mapped sheet</button>
+    </div>
+    <div class="up-sec">
+      <h3>Recent updates</h3>
+      <ul class="up-log" id="upLog"></ul>
+    </div>
+    <div class="up-sec">
+      <details><summary>Save directly to GitHub (optional)</summary>
+        <p>With a GitHub token, <b>Save to register</b> sends the sheet straight to the repository. Use a fine-grained token limited to the <code>__REPO__</code> repository with <b>Contents: read and write</b>. It is kept only in this browser.</p>
+        <div class="up-row"><input id="upTok" type="password" placeholder="github_pat_..." style="flex:1" autocomplete="off"><button class="up-btn" id="upTokSave" type="button">Keep</button><button class="up-btn" id="upTokDel" type="button">Forget</button></div>
+        <p id="upTokState"></p>
+      </details>
+    </div>
+  </div>
+</aside>
+
+<script>
+(() => {
+  const RULES = __RULES__, REPO = "__REPO__", XLSX_URL = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  const $u = id => document.getElementById(id);
+  const escU = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const norm = s => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const has = (t, w) => w.length <= 3 ? new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(t) : t.includes(w);
+  const score = (t, ws) => ws.filter(w => has(t, w)).length;
+  const num = id => Number((String(id || "").match(/(\d+)$/) || [0, 0])[1]);
+  const DATA = typeof D !== "undefined" ? D : { cases: [], epics: [], changes: [] };   // the page's register data
+  const TITLES = new Set([...RULES.headers.scenario, ...RULES.headers.use_case]);
+  const ALIAS = {}; for (const [f, names] of Object.entries(RULES.headers)) for (const a of names) ALIAS[a] ??= f;
+  const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { /* storage blocked */ } } };
+
+  /* open / close */
+  const drawer = $u("upDrawer"), scrim = $u("upScrim");
+  const open = on => { drawer.classList.toggle("on", on); scrim.classList.toggle("on", on); drawer.setAttribute("aria-hidden", String(!on)); };
+  $u("upOpen").addEventListener("click", () => open(true));
+  $u("upClose").addEventListener("click", () => open(false));
+  scrim.addEventListener("click", () => open(false));
+  addEventListener("keydown", e => { if (e.key === "Escape") open(false); });
+  if (location.hash === "#upload") open(true);                    // a shareable link straight to the panel
+
+  /* recent updates */
+  const log = DATA.changes || [];
+  $u("upLog").innerHTML = log.length ? log.map(c => `<li>${escU(c.date)} · ${escU(c.file)}<br>${c.added ? `added <code>${escU(c.added)}</code> ` : ""}${c.updated ? `updated <code>${escU(c.updated)}</code> ` : ""}${c.new_epics ? `new epics <code>${escU(c.new_epics)}</code>` : ""}</li>`).join("") : "<li>No uploads yet.</li>";
+
+  /* token */
+  const tokState = () => { $u("upTokState").textContent = store.get("uc-gh-token") ? "A token is kept in this browser: saving goes straight to GitHub." : "No token: saving downloads the sheet and opens GitHub's upload page."; };
+  $u("upTokSave").addEventListener("click", () => { const v = $u("upTok").value.trim(); if (v) store.set("uc-gh-token", v); $u("upTok").value = ""; tokState(); });
+  $u("upTokDel").addEventListener("click", () => { store.set("uc-gh-token", null); tokState(); });
+  tokState();
+
+  /* categorise (the same rules as build/register.py) */
+  function categorize(r) {
+    const t = ["scenario", "use_case", "assets", "detection_logic", "detection_inputs", "agent_action", "outcome", "outcome_metric", "epic", "domain"].map(k => r[k] || "").join(" ").toLowerCase();
+    const dom = (r.domain || "").toLowerCase(), out = {};
+    if (!r.epic_id && !r.epic) { const best = Object.entries(RULES.epics).map(([id, ws]) => [id, score(t, ws)]).sort((a, b) => b[1] - a[1])[0]; out.epic_id = best[1] ? best[0] : "E00"; }
+    if (!r.aiot_check && (score(t, RULES.aiot_triggers) || dom.includes("aiot"))) { const best = RULES.aiot_checks.map(([n, ws]) => [n, score(t, ws)]).sort((a, b) => b[1] - a[1])[0]; out.aiot_check = best[1] ? best[0] : "New AIoT rule"; }
+    if (!r.esg_pillar) { let ps = Object.entries(RULES.esg).filter(([, ws]) => score(t, ws)).map(([p]) => p); if (!ps.length && dom.includes("esg")) ps = ["E"]; out.esg_pillar = ps.join("+"); }
+    const pil = (r.esg_pillar || out.esg_pillar || "").split("+");
+    if (!r.esg_metric && pil[0]) out.esg_metric = r.outcome_metric || RULES.esg_metric[pil[0]] || "";
+    if (!r.gri && pil.includes("E")) out.gri = (RULES.gri.find(([, ws]) => score(t, ws)) || [""])[0];
+    if (!r.twin_relationship) out.twin_relationship = (RULES.twin.find(([, ws]) => !ws.length || score(t, ws)) || ["Space contains Asset"])[0];
+    if (!RULES.phases.includes(r.phase)) out.phase = RULES.phases.find(p => norm(p) === norm(r.phase)) || RULES.default_phase;
+    if (!r.data_today) out.data_today = "Planned";
+    return out;
+  }
+  function mapRow(raw) {
+    const r = {};
+    for (const [k, v] of Object.entries(raw)) { const f = ALIAS[norm(k)], val = String(v ?? "").trim(); if (f && val && !r[f]) r[f] = val; }
+    r._derived = [];                              // filled in from another column: never counted as a change
+    if (!r.scenario && r.use_case) { r.scenario = r.use_case; r._derived.push("scenario"); }
+    if (!r.use_case && r.scenario) { r.use_case = r.scenario.split(/\s+/).slice(0, 5).join(" "); r._derived.push("use_case"); }
+    return r;
+  }
+  const CMP = { scenario: "scenario", use_case: "name", assets: "assets", phase: "phase", detection_logic: "detection", detection_inputs: "inputs", agent_action: "agent",
+    outcome: "outcome", outcome_metric: "metric", test_case: "test", proposed_acceptance: "acceptance", twin_relationship: "twin", aiot_check: "aiot", esg_pillar: "esg", gri: "gri" };
+
+  let items = [], epics = [], fileName = "";
+  function analyse(records) {
+    const cases = DATA.cases || [];
+    epics = (DATA.epics || []).map(e => ({ ...e }));
+    const byId = Object.fromEntries(cases.map(c => [c.id, c])), byText = Object.fromEntries(cases.map(c => [norm(c.scenario), c]));
+    let nextUc = Math.max(0, ...cases.map(c => num(c.id))) + 1, nextEp = Math.max(0, ...epics.map(e => num(e.id))) + 1;
+    items = [];
+    for (const raw of records) {
+      const r = mapRow(raw); if (!r.scenario) continue;
+      const hit = byId[r.uc_id] || byText[norm(r.scenario)];
+      if (hit) {
+        const chg = Object.entries(CMP).filter(([f, k]) => r[f] && !r._derived.includes(f) && norm(r[f]) !== norm(hit[k])).map(([f]) => f);
+        items.push({ status: chg.length ? "upd" : "same", row: { ...r, uc_id: hit.id, epic_id: hit.epic }, chg }); continue;
+      }
+      if (r.epic && !r.epic_id) {
+        const e = epics.find(x => norm(x.name) === norm(r.epic));
+        if (e) r.epic_id = e.id; else { r.epic_id = `E${String(nextEp++).padStart(2, "0")}`; epics.push({ id: r.epic_id, name: r.epic, personas: r.personas || "", isNew: true }); }
+      }
+      Object.assign(r, Object.fromEntries(Object.entries(categorize(r)).filter(([k]) => !r[k])));
+      if (r.epic_id === "E00" && !epics.some(e => e.id === "E00")) epics.push({ id: "E00", name: "Needs review", personas: "", isNew: true });
+      if (!/^UC-\d{3,}$/.test(r.uc_id || "") || byId[r.uc_id]) r.uc_id = `UC-${String(nextUc).padStart(3, "0")}`;
+      nextUc = Math.max(nextUc, num(r.uc_id)) + 1;
+      items.push({ status: "new", row: r, chg: [] });
+    }
+    draw();
+  }
+
+  function draw() {
+    const n = s => items.filter(i => i.status === s).length, ne = epics.filter(e => e.isNew).length;
+    $u("upSum").classList.add("on");
+    $u("upSum").innerHTML = `<div><b>${n("new")}</b><small>new use cases</small></div><div><b>${n("upd")}</b><small>updates</small></div><div><b>${ne}</b><small>new epics</small></div><div><b>${n("same")}</b><small>already in register</small></div>`;
+    const epicOpts = sel => epics.map(e => `<option value="${e.id}" ${e.id === sel ? "selected" : ""}>${e.id} · ${escU(e.name)}${e.isNew ? " (new)" : ""}</option>`).join("");
+    const lcOpts = sel => ["", ...RULES.aiot_checks.map(c => c[0]), "New AIoT rule"].map(o => `<option value="${escU(o)}" ${o === (sel || "") ? "selected" : ""}>${o ? escU(o) : "No AIoT check"}</option>`).join("");
+    $u("upList").innerHTML = items.map((it, i) => {
+      const r = it.row, pil = (r.esg_pillar || "").split("+");
+      const edit = it.status === "new";
+      return `<div class="up-item ${it.status}" data-i="${i}" style="animation-delay:${Math.min(i, 10) * 30}ms">
+        <div class="up-top"><span class="up-badge">${it.status === "new" ? "New" : it.status === "upd" ? "Update" : "In register"}</span><span class="up-id">${escU(r.uc_id)}</span><span class="up-t">${escU(r.scenario)}</span></div>
+        ${edit ? `<div class="up-row"><label>Epic</label><select data-f="epic_id">${epicOpts(r.epic_id)}</select><label>Phase</label><select data-f="phase">${RULES.phases.map(p => `<option ${p === r.phase ? "selected" : ""}>${p}</option>`).join("")}</select></div>
+        <div class="up-row"><span class="up-dom twin">Senthil Station · ${escU(r.twin_relationship)}</span></div>
+        <div class="up-row"><label>AIoT</label><select data-f="aiot_check">${lcOpts(r.aiot_check)}</select></div>
+        <div class="up-row"><label>ESG</label>${["E", "S", "G"].map(p => `<button type="button" class="up-p ${p} ${pil.includes(p) ? "on" : ""}" data-p="${p}">${p}</button>`).join("")}<input data-f="esg_metric" value="${escU(r.esg_metric || "")}" placeholder="ESG metric" style="flex:1;min-width:140px"><input data-f="gri" value="${escU(r.gri || "")}" placeholder="GRI" style="width:76px"></div>`
+        : it.chg.length ? `<div class="up-chg">Changes: ${it.chg.map(escU).join(", ")}</div>` : ""}
+      </div>`;
+    }).join("") || '<p class="up-help">No rows with a title or scenario were found in this sheet.</p>';
+    $u("upActions").classList.toggle("on", items.some(i => i.status !== "same"));
+  }
+  $u("upList").addEventListener("change", e => {
+    const box = e.target.closest(".up-item"), f = e.target.dataset.f; if (!box || !f) return;
+    items[box.dataset.i].row[f] = e.target.value;
+  });
+  $u("upList").addEventListener("input", e => { const box = e.target.closest(".up-item"), f = e.target.dataset.f; if (box && f && e.target.tagName === "INPUT") items[box.dataset.i].row[f] = e.target.value; });
+  $u("upList").addEventListener("click", e => {
+    const b = e.target.closest(".up-p"); if (!b) return;
+    b.classList.toggle("on");
+    const box = b.closest(".up-item"); items[box.dataset.i].row.esg_pillar = [...box.querySelectorAll(".up-p.on")].map(x => x.dataset.p).join("+");
+  });
+
+  /* read the file */
+  function loadXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = XLSX_URL; s.onload = () => ok(window.XLSX); s.onerror = () => fail(new Error("Could not load the Excel reader (offline?)")); document.head.appendChild(s); });
+  }
+  async function readFile(file) {
+    msg("");
+    fileName = file.name;
+    try {
+      const X = await loadXlsx();
+      const wb = X.read(await file.arrayBuffer(), { type: "array" });
+      let grid = null;
+      for (const name of wb.SheetNames) {
+        const g = X.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "", raw: false });
+        const h = g.slice(0, 15).findIndex(r => r.some(c => TITLES.has(norm(c))));
+        if (h >= 0) { grid = g.slice(h); break; }
+      }
+      if (!grid) { msg("No use-case title or scenario column was found in this file.", "err"); return; }
+      const head = grid[0];
+      analyse(grid.slice(1).filter(r => r.some(c => String(c).trim())).map(r => Object.fromEntries(head.map((k, i) => [k, r[i]]))));
+    } catch (e) { msg(escU(e.message || e), "err"); }
+  }
+  window.ucUpload = { analyse, items: () => items, epics: () => epics, csv: () => csv() };   // for checks from the console
+  $u("upFile").addEventListener("change", e => { if (e.target.files[0]) readFile(e.target.files[0]); e.target.value = ""; });
+  const drop = $u("upDrop");
+  ["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) readFile(f); });
+
+  /* save */
+  const COLS = ["uc_id", "epic_id", "epic", "personas", "scenario", "use_case", "assets", "phase", "detection_logic", "detection_inputs", "agent_action", "outcome", "outcome_metric",
+    "test_case", "proposed_acceptance", "twin_relationship", "aiot_check", "aiot_signals", "aiot_scenario", "esg_pillar", "esg_metric", "gri", "data_today"];
+  function csv() {
+    const q = v => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const rows = items.filter(i => i.status !== "same").map(i => {
+      const r = { ...i.row }, e = epics.find(x => x.id === r.epic_id);
+      if (r.epic_id === "E00") { r.epic_id = ""; r.epic = ""; }                     // "Needs review": the register files it the same way
+      else if (e && e.isNew) { r.epic = e.name; r.personas = r.personas || e.personas; }
+      if (i.status === "upd") { for (const k of COLS) if (!["uc_id", "scenario", ...i.chg].includes(k)) delete r[k]; }
+      return COLS.map(c => q(r[c])).join(",");
+    });
+    return [COLS.join(","), ...rows].join("\n") + "\n";
+  }
+  const outName = () => `upload-${new Date().toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15)}-${fileName.replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9_-]+/g, "_").slice(0, 40)}.csv`;
+  function download(name, text) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "text/csv" })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  function msg(html, kind = "ok") { const m = $u("upMsg"); m.className = `up-msg ${html ? "on" : ""} ${kind}`; m.innerHTML = html; }
+  $u("upDl").addEventListener("click", () => download(outName(), csv()));
+  $u("upSave").addEventListener("click", async () => {
+    const name = outName(), text = csv(), tok = store.get("uc-gh-token"), btn = $u("upSave");
+    const added = items.filter(i => i.status === "new").length, upd = items.filter(i => i.status === "upd").length;
+    if (!tok) {
+      download(name, text);
+      window.open(`https://github.com/${REPO}/upload/main/uploads`, "_blank", "noopener");
+      msg(`<b>Two quick steps to finish:</b><ol><li>The mapped sheet <code>${escU(name)}</code> was downloaded.</li><li>On the GitHub page that opened, drag it in and press <b>Commit changes</b>.</li></ol>The register and these pages update about 2 minutes later.`);
+      return;
+    }
+    btn.disabled = true; btn.textContent = "Saving...";
+    try {
+      const b64 = btoa(unescape(encodeURIComponent(text)));
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/uploads/${encodeURIComponent(name)}`, {
+        method: "PUT", headers: { Authorization: `Bearer ${tok}`, Accept: "application/vnd.github+json" },
+        body: JSON.stringify({ message: `Upload ${added} new and ${upd} updated use cases from ${fileName}`, content: b64 }) });
+      if (!res.ok) throw new Error(`GitHub said ${res.status}: ${(await res.json().catch(() => ({}))).message || res.statusText}`);
+      msg(`<b>Saved.</b> ${added} new and ${upd} updated use cases are going into the register. The pages update in about 2 minutes (<a href="https://github.com/${REPO}/actions" target="_blank" rel="noopener">watch progress</a>); then reload this page.`);
+    } catch (e) { msg(`Could not save: ${escU(e.message || e)}. Check the token, or use <b>Forget</b> to save through GitHub's upload page instead.`, "err"); }
+    finally { btn.disabled = false; btn.textContent = "Save to register"; }
+  });
+})();
+</script>

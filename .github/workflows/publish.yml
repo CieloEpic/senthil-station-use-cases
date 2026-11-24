@@ -1,0 +1,56 @@
+name: Update register and publish
+
+# Runs on every push: adds any sheet dropped into uploads/ to the register (build/ingest.py), commits the register,
+# then builds the three pages (build/site.py) and publishes them to GitHub Pages.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the Excel reader
+        run: pip install openpyxl==3.1.5
+
+      - name: Add uploaded sheets to the register
+        run: python build/ingest.py
+
+      - name: Save the register
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A register uploads
+            git commit -m "Add uploaded use cases to the register"
+            git push
+          fi
+
+      - name: Build the pages
+        run: python build/site.py _site
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

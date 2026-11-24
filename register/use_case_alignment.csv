@@ -1,0 +1,31 @@
+uc_id,aiot_check,aiot_signals,aiot_scenario,esg_pillar,esg_metric,gri,data_today
+UC-001,LC-01 AC health,running_power,,S,Thermal comfort compliance,,Real
+UC-002,LC-01 AC health,"running_power, cooling_dt",ac_reduced_cooling,E,Extra kWh and CO₂ of a degraded AC,302-1,Partial
+UC-003,Rule DL-003,running_power,,E,Avoidable cooling kWh,302-1,Partial
+UC-004,Rule DL-004,"co2_ppm, pm25",,S,Healthy indoor air,,Simulated
+UC-005,LC-04 Pump monitoring,"pump_flow, run_length, running_power",pump_overrun,E,Pumping energy per kL,302-3,Simulated
+UC-006,LC-03 Water tank level,tank_low,,E,Water lifted and overflow avoided,303-5,Simulated
+UC-007,LC-03 Water tank level,leak,,E,Water consumed,303-5,Simulated
+UC-008,LC-05 RO monitoring,running_power,,E,RO water recovery,303-5,Simulated
+UC-009,LC-03 Water tank level,tank_low,,S,Safety and reliability,,Simulated
+UC-010,LC-07 Server health,"server_health, psu_redundancy, fan_rpm",server_warning,E,Data-centre PUE,302-3,Simulated
+UC-011,Rule DL-011,"battery_temp_c, bms_alarm",,S,Safety and reliability,,Simulated
+UC-012,LC-07 Server health,"heartbeat, last_seen",wifi_drop,G,Data completeness,,Partial
+UC-013,LC-06 Electrical distribution,commercial_demand,,E,Energy and Scope 2 by account,"302-1, 305-2",Simulated
+UC-014,LC-09 Solar / energy,pv_yield,solar_drop,E,Renewable share and solar used,305-5,Real
+UC-015,LC-10 Whole-site energy & ESG,,,E+G,"Scope 2, carbon intensity, evidence","305-2, 305-4",Partial
+UC-016,LC-02 Fan health,branch_power_w,high_energy,E,Unoccupied circuit kWh,302-1,Simulated
+UC-017,LC-06 Electrical distribution,unallocated_kwh,,G,Unallocated energy (meter gap),,Simulated
+UC-018,Rule DL-018,"internal_temp_c, door_state",,S,Safety and reliability,,Simulated
+UC-019,Rule DL-019,running_power,high_energy,E,Appliance circuit kWh,302-1,Simulated
+UC-020,Rule DL-020,running_power,geyser_stuck,E,Heating kWh outside schedule,302-1,Simulated
+UC-021,LC-08 EV charging,"running_power, run_length",high_energy,E,Charging demand and kWh,302-1,Simulated
+UC-022,Data quality (all feeds),"quality flag, freshness",wifi_drop,G,Data completeness,,Real
+UC-023,Data quality (all feeds),"buffer, replay",wifi_drop,G,Hours refilled after downtime,,Real
+UC-024,Command flow,"command state, approval",,G,Governed commands approved by a person,,Partial
+UC-025,Device registry,device binding,,G,Evidence integrity,,Simulated
+UC-026,Access control,access decision,,G,Audit trail,,Simulated
+UC-027,Evidence,,,G+E,"Evidence integrity, CO₂ avoided",305-5,Partial
+UC-028,Commissioning,,,G,Evidence integrity,,Planned
+UC-029,"LC-01, LC-03, LC-07",all RP signals,RP scenarios,E+S+G,All three pillars on one screen,,Partial
+UC-030,Operations,"completeness, latency",,G,"Data completeness, audit trail",,Planned

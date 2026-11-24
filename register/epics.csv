@@ -1,0 +1,11 @@
+epic_id,epic,personas
+E01,Cooling and occupied-space comfort,Resident / associate / facilities operator
+E02,Water availability and efficient pumping,Resident / maintenance operator
+E03,Server and infrastructure resilience,Infrastructure administrator
+E04,Account-level energy and solar visibility,Owner / finance / ESG verifier
+E05,Lighting and shared-load management,Resident / facilities operator
+E06,Kitchen and appliance service continuity,Resident / pantry operator
+E07,Hot-water service and bounded schedules,Resident / maintenance operator
+E08,EV charging visibility and scheduling,Vehicle owner / facilities operator
+E09,Trustworthy telemetry and safe commands,Installer / operator / channel partner
+E10,Partner replication and verified outcomes,Hotel partner / Channel partner / owner / verifier

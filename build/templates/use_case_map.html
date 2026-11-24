@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Senthil Station Use Cases</title>
+<script>
+  // Pick the theme before anything paints: the viewer's last choice, else their system setting.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("uc-theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Senthil Station theme (frontend/src/styles/tokens.css), with a light variant */
+:root {
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --radius: 14px;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a1316; --bg-raised: #101d21; --bg-sunken: #15262b; --card: rgb(16 29 33 / 0.86);
+  --line: #223a40; --line-strong: #2f4d54;
+  --text: #dce8e5; --text-dim: #8aa29e; --text-faint: #647b78;
+  --accent: #3ccfb2; --accent-2: #8fe8d6; --accent-soft: rgb(60 207 178 / 0.13); --on-accent: #0a1316;
+  --rp: #47c98a; --pilot: #e8b44e; --mvp: #8ea6f0;
+  --glow-a: rgb(60 207 178 / 0.10); --glow-b: rgb(142 166 240 / 0.06); --grid: rgb(60 207 178 / 0.045);
+  --stage: radial-gradient(ellipse at 30% 0%, #12282e, #0c1a1e 70%);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px rgb(0 0 0 / 0.28);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f7f6; --bg-raised: #ffffff; --bg-sunken: #edf3f1; --card: rgb(255 255 255 / 0.92);
+  --line: #d5e1de; --line-strong: #bccfca;
+  --text: #13201f; --text-dim: #48605b; --text-faint: #6d837e;
+  --accent: #0c937b; --accent-2: #2bb39a; --accent-soft: rgb(12 147 123 / 0.11); --on-accent: #ffffff;
+  --rp: #1d8f5c; --pilot: #a86d0e; --mvp: #4a63cf;
+  --glow-a: rgb(12 147 123 / 0.10); --glow-b: rgb(74 99 207 / 0.07); --grid: rgb(12 147 123 / 0.06);
+  --stage: radial-gradient(ellipse at 30% 0%, #ffffff, #eef5f3 70%);
+  --shadow: 0 1px 2px rgb(16 40 36 / 0.06), 0 10px 28px rgb(16 40 36 / 0.08);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; color: var(--text); font: 14px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; min-height: 100vh;
+  background: radial-gradient(1200px 600px at 78% -10%, var(--glow-a), transparent 60%),
+              radial-gradient(900px 500px at -10% 30%, var(--glow-b), transparent 60%), var(--bg);
+}
+body, .kpi, .stage, details.uc, .step, .seg, select, .search input, .stamp, .theme, .trace li, .epi {
+  transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+body::before { /* blueprint grid */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px; mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+}
+.wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 16px 56px; }
+button, input, select { font: inherit; color: inherit; }
+
+/* top bar */
+.top { display: flex; align-items: center; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.logo { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); }
+.brand b { display: block; font: 700 17px/1.1 var(--font-display); letter-spacing: 0.01em; }
+.brand small { color: var(--text-faint); font-size: 12px; }
+.top .spacer { flex: 1; }
+.navlink { font-weight: 500; font-size: 13px; color: var(--accent); text-decoration: none; border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 14px; background: var(--bg-raised); }
+.navlink:hover { border-color: var(--accent); background: var(--accent-soft); }
+.stamp { font: 500 12px var(--font-mono); color: var(--text-dim); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--bg-raised); }
+.stamp i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--rp); margin-right: 7px; animation: ping 2s infinite; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--rp) 60%, transparent); } 70%, 100% { box-shadow: 0 0 0 8px transparent; } }
+.theme { position: relative; width: 62px; height: 32px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--bg-raised); cursor: pointer; padding: 0; }
+.theme .knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
+  display: grid; place-items: center; transition: transform .35s cubic-bezier(.5, 1.6, .4, 1), background-color .35s; }
+:root[data-theme="light"] .theme .knob { transform: translateX(30px); }
+.theme svg { width: 14px; height: 14px; }
+.theme .sun { display: none; } :root[data-theme="light"] .theme .sun { display: block; } :root[data-theme="light"] .theme .moon { display: none; }
+.theme:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; padding: 34px 0 16px; }
+.eyebrow { font: 500 12px var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 800 clamp(30px, 4.2vw, 46px)/1.05 var(--font-display); letter-spacing: -0.01em; margin: 10px 0 14px; }
+h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2) 60%, var(--mvp)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { color: var(--text-dim); font-size: 15.5px; max-width: 52ch; margin: 0 0 22px; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.kpi { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 10px; }
+.kpi b { display: block; font: 700 26px/1 var(--font-display); }
+.kpi small { color: var(--text-faint); font-size: 12px; }
+.kpi.rp b { color: var(--rp); } .kpi.pilot b { color: var(--pilot); } .kpi.mvp b { color: var(--mvp); }
+
+/* live trace: one real use case walking through the chain */
+.stage { position: relative; border-radius: var(--radius); border: 1px solid var(--line); background: var(--stage); box-shadow: var(--shadow); padding: 16px 18px 14px; overflow: hidden; }
+.stage-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tag { font: 500 11px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); display: flex; align-items: center; gap: 8px; }
+.tag i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1.4s infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.pos { font: 500 12px var(--font-mono); color: var(--text-dim); }
+.epis { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; margin-bottom: 14px; }
+.epi { font: 500 10.5px var(--font-mono); text-align: center; padding: 5px 0; border-radius: 6px; border: 1px solid var(--line); color: var(--text-faint); background: var(--bg-raised); cursor: pointer; }
+.epi.on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); box-shadow: 0 0 16px var(--accent-soft); }
+.trace { position: relative; list-style: none; margin: 0; padding: 0 0 0 4px; }
+.trace::before { content: ""; position: absolute; left: 19px; top: 18px; bottom: 18px; width: 2px; background: var(--line); border-radius: 2px; }
+.trace .fill { position: absolute; left: 19px; top: 18px; width: 2px; height: 0; background: linear-gradient(var(--accent), var(--accent-2)); border-radius: 2px; transition: height .55s ease; }
+.token { position: absolute; left: 13px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px var(--accent-soft), 0 0 22px var(--accent);
+  transition: transform .55s cubic-bezier(.45, 0, .2, 1); z-index: 0; }
+.trace li { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; padding: 7px 10px 7px 0; border-radius: 10px; }
+.trace .tn { position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font: 700 12px var(--font-display);
+  background: var(--bg-raised); border: 1px solid var(--line-strong); color: var(--text-faint); transition: all .35s ease; }
+.trace li.lit .tn { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.trace small { display: block; font: 600 10.5px/1.2 var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin: 2px 0 3px; }
+.trace .v { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13.5px; min-height: 2.9em;
+  opacity: .18; filter: blur(2px); transform: translateX(-4px); transition: opacity .45s ease, filter .45s ease, transform .45s ease; }
+.trace li.lit .v { opacity: 1; filter: none; transform: none; }
+.trace code { font: 500 12px var(--font-mono); color: var(--accent); margin-right: 6px; }
+.verdict { position: absolute; right: 10px; top: 8px; font: 600 11px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--rp);
+  border: 1.5px solid var(--rp); border-radius: 6px; padding: 3px 8px; opacity: 0; transform: scale(1.6) rotate(-8deg); transition: opacity .3s ease, transform .35s cubic-bezier(.3, 1.6, .5, 1); }
+.trace li.lit .verdict { opacity: 1; transform: scale(1) rotate(-4deg); }
+.stage-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.ctl { border: 1px solid var(--line-strong); background: var(--bg-raised); border-radius: 8px; padding: 5px 10px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center; gap: 6px; }
+.ctl:hover { border-color: var(--accent); color: var(--accent); }
+.ctl svg { width: 14px; height: 14px; }
+.stage-foot .grow { flex: 1; }
+.bar-prog { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 10px; }
+.bar-prog i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .5s ease; }
+
+/* chain */
+.chain { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: 26px 0 8px; }
+.chain::before { content: ""; position: absolute; left: 4%; right: 4%; top: 22px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent) 0 0 / 30% 100% no-repeat, var(--line); animation: flow 3.2s linear infinite; }
+@keyframes flow { from { background-position: -30% 0, 0 0; } to { background-position: 130% 0, 0 0; } }
+.node { position: relative; text-align: center; padding: 0 4px; }
+.node .dot { width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 12px; display: grid; place-items: center; font: 700 15px var(--font-display);
+  background: var(--bg-raised); border: 1px solid var(--line-strong); color: var(--text-dim); }
+.node.on .dot { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.node span { font: 600 12.5px/1.3 var(--font-display); }
+
+/* controls */
+.bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 0; margin: 18px 0 4px; background: linear-gradient(180deg, var(--bg) 72%, transparent); }
+.search { flex: 1; min-width: 220px; position: relative; }
+.search input { width: 100%; background: var(--bg-raised); border: 1px solid var(--line-strong); border-radius: 10px; padding: 9px 12px 9px 34px; outline: none; }
+.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-faint); }
+select { background: var(--bg-raised); border: 1px solid var(--line-strong); border-radius: 10px; padding: 9px 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 10px; overflow: hidden; background: var(--bg-raised); }
+.seg button { border: 0; background: none; padding: 8px 13px; cursor: pointer; color: var(--text-dim); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent-soft); color: var(--accent); }
+
+/* list */
+.group { display: flex; align-items: center; gap: 12px; margin: 30px 0 10px; flex-wrap: wrap; }
+.group .eid { font: 700 12px var(--font-mono); color: var(--on-accent); background: var(--accent); border-radius: 6px; padding: 3px 8px; }
+.group h2 { font: 700 19px/1.2 var(--font-display); margin: 0; }
+.group small { color: var(--text-faint); }
+.group .meter { flex-basis: 100%; height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; display: flex; }
+.group .meter i { display: block; height: 100%; }
+details.uc { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--ph, var(--line-strong)); border-radius: 12px; margin: 9px 0; opacity: 0; transform: translateY(10px); scroll-margin-top: 80px; }
+details.uc.in { opacity: 1; transform: none; transition: opacity .45s ease, transform .45s ease, background-color .35s, border-color .2s, box-shadow .2s; }
+details.uc:hover { border-color: var(--line-strong); box-shadow: var(--shadow); }
+details.uc[open] { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+details.uc.flash { animation: flash 1.6s ease; }
+@keyframes flash { 0%, 40% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+details.uc.RP { --ph: var(--rp); } details.uc.Pilot { --ph: var(--pilot); } details.uc.MVP { --ph: var(--mvp); }
+summary { list-style: none; cursor: pointer; padding: 13px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+summary::-webkit-details-marker { display: none; }
+summary .chev { width: 18px; height: 18px; color: var(--text-faint); transition: transform .2s; flex: none; }
+details[open] summary .chev { transform: rotate(90deg); color: var(--accent); }
+.uid { font: 600 13px var(--font-mono); color: var(--accent); min-width: 60px; }
+.ttl { flex: 1; min-width: 220px; font-weight: 500; }
+.ttl small { color: var(--text-faint); font-weight: 400; }
+.pill { font: 500 11.5px var(--font-mono); border-radius: 999px; padding: 3px 10px; border: 1px solid var(--line-strong); color: var(--text-dim); white-space: nowrap; }
+.pill.RP, .pill.Pilot, .pill.MVP { color: var(--c); border-color: color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 9%, transparent); }
+.pill.RP { --c: var(--rp); } .pill.Pilot { --c: var(--pilot); } .pill.MVP { --c: var(--mvp); }
+.steps { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding: 4px 16px 16px; }
+.steps::before { content: ""; position: absolute; left: 30px; right: 30px; top: 18px; height: 1px; background: linear-gradient(90deg, var(--accent), var(--line-strong)); opacity: .5; }
+.step { position: relative; background: var(--bg-sunken); border: 1px solid var(--line); border-radius: 10px; padding: 30px 13px 13px; animation: rise .4s ease both; }
+.step:nth-child(2) { animation-delay: .05s; } .step:nth-child(3) { animation-delay: .1s; } .step:nth-child(4) { animation-delay: .15s; } .step:nth-child(5) { animation-delay: .2s; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.step .n { position: absolute; top: -1px; left: 12px; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+  font: 700 12px var(--font-display); background: var(--bg-raised); border: 1px solid var(--accent); color: var(--accent); }
+.step h3 { position: absolute; top: 9px; left: 46px; right: 10px; margin: 0; font: 600 10.5px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
+.step p { margin: 0 0 7px; font-size: 13px; }
+.step p:last-child { margin: 0; }
+.step .k { color: var(--text-faint); font-size: 12px; }
+.step code { font: 500 12px var(--font-mono); color: var(--accent); }
+@media (max-width: 960px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chain { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 16px; }
+  .chain::before { display: none; }
+  .steps { grid-template-columns: 1fr; }
+  .steps::before { display: none; }
+  .epis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+.empty { color: var(--text-faint); padding: 40px; text-align: center; border: 1px dashed var(--line-strong); border-radius: 12px; margin-top: 20px; }
+footer { color: var(--text-faint); font-size: 12px; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  details.uc { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V9l8-5 8 5v12"/><path d="M4 14h16M9 21v-4h6v4"/></svg></div>
+    <div class="brand"><b>Senthil Station</b><small>Use case traceability</small></div>
+    <div class="spacer"></div>
+    <a class="navlink" href="__HREF_ALIGN__">Team alignment <span aria-hidden="true">&rarr;</span></a>
+    <a class="navlink" href="__HREF_FLOW__">Data flow &amp; ERD <span aria-hidden="true">&rarr;</span></a>
+    <div class="stamp"><i></i>Updated __GENERATED__</div>
+    <button class="theme" id="theme" type="button" aria-label="Switch between light and dark theme">
+      <span class="knob"><svg class="moon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">ESG &middot; AIoT digital twin</div>
+      <h1>Every use case, <em>traced from need to proof</em></h1>
+      <p class="lede">Each use case is linked to its epic, the user story it serves, how it is implemented and the evidence it produces, and the test that validates it.</p>
+      <div class="kpis" id="kpis"></div>
+    </div>
+    <div class="stage" id="flow" aria-label="Live trace: one use case at a time through the chain">
+      <div class="stage-head"><span class="tag"><i></i>Live trace</span><span class="pos" id="fPos"></span></div>
+      <div class="epis" id="fEpis"></div>
+      <ol class="trace" id="fTrace">
+        <span class="fill" id="fFill"></span><span class="token" id="fToken"></span>
+        <li><span class="tn">1</span><div><small>Use case</small><div class="v" id="f1"></div></div></li>
+        <li><span class="tn">2</span><div><small>Related epic</small><div class="v" id="f2"></div></div></li>
+        <li><span class="tn">3</span><div><small>User story / task</small><div class="v" id="f3"></div></div></li>
+        <li><span class="tn">4</span><div><small>Implementation &amp; evidence</small><div class="v" id="f4"></div></div></li>
+        <li><span class="tn">5</span><div><small>Demonstration / validation</small><div class="v" id="f5"></div></div><span class="verdict" id="fVerdict"></span></li>
+      </ol>
+      <div class="stage-foot">
+        <button class="ctl" id="fPrev" type="button" aria-label="Previous use case"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button class="ctl" id="fPlay" type="button" aria-label="Pause"><svg viewBox="0 0 24 24" fill="currentColor" id="fPlayIcon"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg></button>
+        <button class="ctl" id="fNext" type="button" aria-label="Next use case"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>
+        <span class="grow"></span>
+        <button class="ctl" id="fOpen" type="button">Open details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button>
+      </div>
+      <div class="bar-prog"><i id="fProg"></i></div>
+    </div>
+  </section>
+
+  <nav class="chain" aria-label="Traceability chain">
+    <div class="node"><div class="dot">S</div><span>Senthil Station</span></div>
+    <div class="node on"><div class="dot">1</div><span>Use cases</span></div>
+    <div class="node on"><div class="dot">2</div><span>Related epics</span></div>
+    <div class="node on"><div class="dot">3</div><span>User stories / tasks</span></div>
+    <div class="node on"><div class="dot">4</div><span>Implementation &amp; evidence</span></div>
+    <div class="node on"><div class="dot">5</div><span>Demonstration / validation</span></div>
+  </nav>
+
+  <div class="bar">
+    <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search use cases, assets, tests, owners..." aria-label="Search"></label>
+    <select id="epic" aria-label="Epic"><option value="">All epics</option></select>
+    <div class="seg" id="phase" role="group" aria-label="Phase"><button class="on" data-v="">All</button><button data-v="RP">RP</button><button data-v="Pilot">Pilot</button><button data-v="MVP">MVP</button></div>
+    <div class="seg" id="group" role="group" aria-label="Group by"><button class="on" data-v="epic">By epic</button><button data-v="uc">By use case</button></div>
+  </div>
+
+  <main id="list"></main>
+
+  <footer><span>Phases: RP = rapid prototype &rarr; Pilot &rarr; MVP.</span><span>Generated from the Senthil Station use-case register.</span></footer>
+</div>
+
+<script>
+const D = __DATA__;
+const E = Object.fromEntries(D.epics.map(e => [e.id, e]));
+const st = { q: "", epic: "", phase: "", group: "epic" };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>';
+const $ = id => document.getElementById(id);
+
+/* theme toggle */
+$("theme").addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("uc-theme", next); } catch (e) { /* storage blocked: the choice lasts this visit */ }
+});
+
+const sel = $("epic");
+D.epics.forEach(e => sel.insertAdjacentHTML("beforeend", `<option value="${e.id}">${e.id} · ${esc(e.name)}</option>`));
+
+function countUp(el, to) {
+  if (reduce) { el.textContent = to; return; }
+  const t0 = performance.now(), from = Number(el.textContent) || 0;
+  const tick = t => { const k = Math.min(1, (t - t0) / 700); el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+const kpiDefs = [["cases", "use cases", ""], ["epics", "epics", ""], ["RP", "rapid prototype", "rp"], ["Pilot", "pilot", "pilot"], ["MVP", "MVP", "mvp"]];
+$("kpis").innerHTML = kpiDefs.map(([k, l, c]) => `<div class="kpi ${c}"><b data-k="${k}">0</b><small>${l}</small></div>`).join("");
+function kpis(rows) {
+  const v = { cases: rows.length, epics: new Set(rows.map(c => c.epic)).size };
+  for (const p of ["RP", "Pilot", "MVP"]) v[p] = rows.filter(c => c.phase === p).length;
+  document.querySelectorAll("[data-k]").forEach(el => countUp(el, v[el.dataset.k]));
+}
+
+function card(c) {
+  const e = E[c.epic] || { name: "", personas: "" };
+  return `<details class="uc ${c.phase}" id="card-${c.id}"><summary>${chev}<span class="uid">${c.id}</span>
+<span class="ttl">${esc(c.scenario)} <small>· ${esc(c.name)}</small></span>
+<span class="pill">${c.epic} ${esc(e.name)}</span><span class="pill ${c.phase}">${c.phase}</span></summary>
+<div class="steps">
+<div class="step"><span class="n">1</span><h3>Use case</h3><p><code>${c.id}</code> ${esc(c.name)}</p><p>${esc(c.scenario)}</p><p><span class="k">Assets</span><br>${esc(c.assets)}</p></div>
+<div class="step"><span class="n">2</span><h3>Related epic</h3><p><code>${c.epic}</code> ${esc(e.name)}</p><p><span class="k">Serves</span><br>${esc(e.personas)}</p></div>
+<div class="step"><span class="n">3</span><h3>User story / task</h3><p>${esc(c.story)}</p><p><span class="k">Task</span> <code>${c.agent_id}</code><br>${esc(c.agent)}</p></div>
+<div class="step"><span class="n">4</span><h3>Implementation &amp; evidence</h3><p><code>${c.detection_id}</code> ${esc(c.detection)}</p><p><span class="k">Data</span><br>${esc(c.inputs)}</p><p><span class="k">Evidence</span> <code>${c.outcome_id}</code><br>${esc(c.metric)}: ${esc(c.measure)}</p></div>
+<div class="step"><span class="n">5</span><h3>Demonstration / validation</h3><p><code>${c.test_id}</code> ${esc(c.test)}</p><p><span class="k">Pass when</span><br>${esc(c.acceptance)}</p><p><span class="k">Limit</span><br>${esc(c.limitation)}</p>${c.owner ? `<p><span class="k">Owner</span><br>${esc(c.owner)}</p>` : ""}</div>
+</div></details>`;
+}
+
+function meter(rows) {
+  const n = p => rows.filter(c => c.phase === p).length, t = rows.length || 1;
+  return `<div class="meter">${[["RP", "var(--rp)"], ["Pilot", "var(--pilot)"], ["MVP", "var(--mvp)"]].map(([p, col]) => `<i style="width:${n(p) / t * 100}%;background:${col}"></i>`).join("")}</div>`;
+}
+
+const io = "IntersectionObserver" in window && !reduce
+  ? new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add("in"); io.unobserve(x.target); } }), { rootMargin: "0px 0px -40px 0px" })
+  : null;
+
+function render() {
+  const q = st.q.toLowerCase();
+  const rows = D.cases.filter(c => (!st.epic || c.epic === st.epic) && (!st.phase || c.phase === st.phase)
+    && (!q || (Object.values(c).join(" ") + " " + (E[c.epic]?.name || "")).toLowerCase().includes(q)));
+  kpis(rows);
+  const list = $("list");
+  if (!rows.length) { list.innerHTML = '<p class="empty">No use case matches these filters.</p>'; return; }
+  list.innerHTML = st.group === "uc" ? rows.map(card).join("") : D.epics.map(e => {
+    const mine = rows.filter(c => c.epic === e.id);
+    return mine.length ? `<div class="group"><span class="eid">${e.id}</span><h2>${esc(e.name)}</h2><small>${mine.length} use case${mine.length > 1 ? "s" : ""} · ${esc(e.personas)}</small>${meter(mine)}</div>${mine.map(card).join("")}` : "";
+  }).join("");
+  list.querySelectorAll("details.uc").forEach((d, i) => { if (io) { d.style.transitionDelay = `${Math.min(i, 8) * 30}ms`; io.observe(d); } else d.classList.add("in"); });
+}
+$("q").addEventListener("input", ev => { st.q = ev.target.value; render(); });
+sel.addEventListener("change", ev => { st.epic = ev.target.value; render(); });
+function setSeg(id, v) {
+  $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.v === v));
+  st[id] = v;
+}
+for (const id of ["phase", "group"]) $(id).addEventListener("click", ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  setSeg(id, b.dataset.v); render();
+});
+render();
+
+/* ---- live trace: walk one real use case at a time down the chain ---- */
+(() => {
+  const cases = D.cases, items = [...$("fTrace").querySelectorAll("li")];
+  const STEP = 700, HOLD = 2400;
+  let idx = 0, playing = !reduce, timers = [];
+  $("fEpis").innerHTML = D.epics.map(e => `<span class="epi" data-e="${e.id}" title="${esc(e.name)}">${e.id}</span>`).join("");
+
+  const clear = () => { timers.forEach(clearTimeout); timers = []; };
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const yOf = li => li.offsetTop + li.offsetHeight / 2 - 7;
+  function light(i) {
+    items.forEach((li, k) => li.classList.toggle("lit", k <= i));
+    const li = items[Math.max(0, i)];
+    $("fToken").style.transform = `translateY(${yOf(li)}px)`;
+    $("fFill").style.height = `${Math.max(0, yOf(li) - 11)}px`;
+  }
+  function show(n, animate) {
+    clear();
+    idx = (n + cases.length) % cases.length;
+    const c = cases[idx], e = E[c.epic] || { name: "" };
+    $("fPos").textContent = `${c.id} · ${idx + 1} of ${cases.length}`;
+    $("fEpis").querySelectorAll(".epi").forEach(x => x.classList.toggle("on", x.dataset.e === c.epic));
+    $("f1").innerHTML = `<code>${c.id}</code>${esc(c.scenario)}`;
+    $("f2").innerHTML = `<code>${c.epic}</code>${esc(e.name)}`;
+    $("f3").innerHTML = `<code>${c.agent_id}</code>${esc(c.agent)}`;
+    $("f4").innerHTML = `<code>${c.detection_id}</code>${esc(c.detection)}`;
+    $("f5").innerHTML = `<code>${c.test_id}</code>${esc(c.test)}`;
+    $("fVerdict").textContent = `${c.phase} phase`;
+    $("fProg").style.width = `${(idx + 1) / cases.length * 100}%`;
+    if (!animate) { light(4); return; }
+    items.forEach(li => li.classList.remove("lit"));
+    light(-1); items[0].classList.remove("lit");
+    for (let k = 0; k < 5; k++) later(() => light(k), 250 + k * STEP);
+    if (playing) later(() => show(idx + 1, true), 250 + 5 * STEP + HOLD);
+  }
+  function setPlaying(p) {
+    playing = p;
+    $("fPlay").setAttribute("aria-label", p ? "Pause" : "Play");
+    $("fPlayIcon").innerHTML = p ? '<path d="M7 5h3v14H7zM14 5h3v14h-3z"/>' : '<path d="M8 5v14l11-7z"/>';
+  }
+  $("fPlay").addEventListener("click", () => { setPlaying(!playing); if (playing) show(idx + 1, true); else clear(); });
+  $("fNext").addEventListener("click", () => show(idx + 1, !reduce));
+  $("fPrev").addEventListener("click", () => show(idx - 1, !reduce));
+  $("fEpis").addEventListener("click", ev => {
+    const x = ev.target.closest(".epi"); if (!x) return;
+    show(cases.findIndex(c => c.epic === x.dataset.e), !reduce);
+  });
+  $("fOpen").addEventListener("click", () => {
+    const c = cases[idx];
+    st.q = ""; $("q").value = ""; st.epic = ""; sel.value = ""; setSeg("phase", ""); render();
+    const d = $(`card-${c.id}`); if (!d) return;
+    d.classList.add("in"); d.open = true; d.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    d.classList.remove("flash"); void d.offsetWidth; d.classList.add("flash");
+  });
+  setPlaying(playing);
+  show(0, playing);
+  addEventListener("resize", () => light(items.filter(li => li.classList.contains("lit")).length - 1));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "_about": "How a new use case is categorised. Used by both the upload panel (in the browser) and build/ingest.py (on GitHub). Keywords of 3 letters or fewer match whole words only; longer ones match anywhere (so 'degrad' finds degraded and degradation).",
+  "epics": {
+    "E01": ["ac", "air condition", "aircon", "cooling", "comfort", "temperature", "hvac", "iaq", "air quality", "co2", "humid", "stuffy", "too warm", "thermal"],
+    "E02": ["water", "pump", "tank", "sump", "borewell", "overflow", "ro", "reverse osmosis", "leak", "pipe", "flow"],
+    "E03": ["server", "ups", "rack", "network", "connectivity", "internet", "wifi", "psu", "ilo", "battery backup"],
+    "E04": ["energy", "solar", "inverter", "pv", "meter", "account", "bill", "tariff", "emission", "carbon", "scope 2", "esg report", "consumption"],
+    "E05": ["light", "lights", "lighting", "fan", "fans", "switch", "occupancy ends"],
+    "E06": ["kitchen", "fridge", "refrigerator", "appliance", "microwave", "cooker", "pantry"],
+    "E07": ["geyser", "hot water", "heater", "water heater"],
+    "E08": ["ev", "electric vehicle", "charger", "charging"],
+    "E09": ["sensor", "telemetry", "data quality", "command", "device", "access", "outage", "offline", "replay", "tenant", "binding", "calibration"],
+    "E10": ["partner", "reward", "pilot", "release", "replicat", "hotel", "verified", "verifier", "showcase", "demo"]
+  },
+  "aiot_triggers": ["detect", "anomal", "fault", "alert", "abnormal", "trip", "leak", "fail", "degrad", "monitor", "predict", "health", "overrun", "drop", "warning", "outage", "stop", "unusual", "excursion", "rises", "falls", "consumes more"],
+  "aiot_checks": [
+    ["LC-01 AC health", ["ac", "air condition", "cooling", "hvac", "compressor"]],
+    ["LC-02 Fan health", ["fan", "fans"]],
+    ["LC-03 Water tank level", ["tank", "sump", "overflow", "water level"]],
+    ["LC-04 Pump monitoring", ["pump", "borewell"]],
+    ["LC-05 RO monitoring", ["ro", "reverse osmosis"]],
+    ["LC-06 Electrical distribution", ["meter", "distribution", "incomer", "demand", "circuit"]],
+    ["LC-07 Server health", ["server", "psu", "ilo", "rack", "connectivity", "network"]],
+    ["LC-08 EV charging", ["ev", "charger", "charging"]],
+    ["LC-09 Solar / energy", ["solar", "pv", "inverter"]],
+    ["LC-10 Whole-site energy & ESG", ["whole site", "site energy", "esg", "emission", "scope 2"]]
+  ],
+  "esg": {
+    "E": ["energy", "kwh", "solar", "power", "electric", "water", "emission", "co2", "carbon", "renewable", "pue", "fuel", "consum", "waste", "runtime", "cooling", "heating", "charging"],
+    "S": ["comfort", "air quality", "iaq", "safety", "occupant", "health", "wellbeing", "reliab", "resident", "stuffy", "too warm", "food", "continuity", "availability"],
+    "G": ["audit", "approv", "access", "data quality", "evidence", "compliance", "report", "verif", "governance", "command", "permission", "tenant", "record", "release", "binding", "registry", "reward"]
+  },
+  "esg_metric": {
+    "E": "Environmental impact (energy, water, emissions)",
+    "S": "Comfort, health and reliability",
+    "G": "Governance and evidence"
+  },
+  "gri": [
+    ["305-5", ["avoid", "reduction", "offset", "reward"]],
+    ["305-2", ["scope 2", "emission", "carbon", "co2"]],
+    ["303-5", ["water"]],
+    ["302-3", ["intensity", "per kl", "pue"]],
+    ["302-1", ["energy", "kwh", "electric", "power", "runtime", "charging", "heating", "cooling"]]
+  ],
+  "twin": [
+    ["AC serves Space", ["ac", "air condition", "cooling", "hvac"]],
+    ["Pump fills Tank", ["pump", "borewell"]],
+    ["Tank stores Water", ["tank", "sump", "water"]],
+    ["Inverter feeds Building", ["solar", "inverter", "pv"]],
+    ["Meter measures Account", ["meter", "account", "bill"]],
+    ["Charger serves Vehicle", ["ev", "charger", "charging"]],
+    ["Server room hosts Server", ["server", "ups", "rack", "network"]],
+    ["Circuit feeds Space", ["light", "fan", "circuit", "kitchen", "appliance", "geyser"]],
+    ["Space contains Asset", []]
+  ],
+  "headers": {
+    "uc_id": ["ucid", "usecaseid", "id", "ucno", "usecaseno"],
+    "scenario": ["scenario", "title", "usecasetitle", "description", "summary", "problem", "situation"],
+    "use_case": ["usecase", "usecasename", "shortname", "name"],
+    "epic_id": ["epicid", "epicno", "epiccode"],
+    "epic": ["epic", "epicname", "epictitle"],
+    "personas": ["persona", "personas", "user", "users", "actor", "actors", "role", "stakeholder"],
+    "assets": ["assets", "asset", "assetids", "equipment", "devices"],
+    "phase": ["phase", "stage", "release"],
+    "detection_logic": ["detection", "detectionlogic", "trigger", "rule", "condition", "logic"],
+    "detection_inputs": ["inputs", "signals", "detectioninputs", "data", "sensors", "datapoints"],
+    "agent_action": ["action", "agentaction", "response", "task", "userstory", "story"],
+    "outcome": ["outcome", "benefit", "goal", "value", "result"],
+    "outcome_metric": ["metric", "kpi", "outcomemetric", "measure"],
+    "test_case": ["test", "testcase", "acceptancetest", "validation", "demo", "demonstration"],
+    "proposed_acceptance": ["acceptance", "passcriteria", "proposedacceptance", "criteria", "passwhen"],
+    "domain": ["domain", "product", "team", "products"],
+    "twin_relationship": ["twinrelationship", "twin"],
+    "aiot_check": ["aiotcheck", "aiot"],
+    "aiot_signals": ["aiotsignals"],
+    "aiot_scenario": ["aiotscenario", "faultscenario"],
+    "esg_pillar": ["esgpillar", "esg", "pillar"],
+    "esg_metric": ["esgmetric"],
+    "gri": ["gri", "gridisclosure"],
+    "data_today": ["datatoday", "datastatus"]
+  },
+  "phases": ["RP", "Pilot", "MVP"],
+  "default_phase": "MVP"
+}
